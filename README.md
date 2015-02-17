@@ -131,7 +131,7 @@ now node 2
 $ vagrant ssh core-02
 Last login: Mon Feb 16 23:29:30 2015 from 24.207.140.202
 CoreOS stable (557.2.0)
-core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.1/24
+core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.2/24
 core@ip-X-X-X-X ~ $ logout
 You will need VirtualBox and Vagrant installed. I'm using Vagrant 1.6.3 and VirtualBox 4.3.12 on OS/X Yosemite.
 ```
@@ -140,7 +140,7 @@ And finally node 3 - and verify ping connectivity:
 $ vagrant ssh core-03
 Last login: Mon Feb 16 23:29:30 2015 from 24.207.140.202
 CoreOS stable (557.2.0)
-core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.1/24
+core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.3/24
 core@ip-X-X-X-X ~ $ ping 172.99.0.1 -c 3
 PING 172.99.0.1 (172.99.0.1) 56(84) bytes of data.
 64 bytes from 172.99.0.1: icmp_seq=1 ttl=64 time=1.72 ms
