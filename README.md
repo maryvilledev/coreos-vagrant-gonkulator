@@ -7,8 +7,8 @@ _NOTE2 (From previous fork):_ This post borrows directly from [@errordeveloper's
 ## Installation
 I've forked the CoreOS Vagrant Weave repository and made the requisite changes. So -  create an AWS Access Key, setup your AWS environment variables, and vagrant up (for a 3-node virtualbox cluster or vagrant up --provider=aws for a 3-node cluster on AWS.  The discovery tokens are updated dynamically at every "vagrant up".  If you want to run a cluster larger (much larger?) than 3 - just edit the num_instances variable in config.rb, save and follow the directions below.  I've tested it to 20 nodes on AWS.
 ```
-$ git clone https://github.com/stlalpha/coreos-vagrant-weave-multi.git
-$ cd coreos-vagrant-weave-multi
+$ git clone https://github.com/stlalpha/coreos-vagrant-gonkulator.git
+$ cd coreos-vagrant-gonkulator
 $ vagrant plugin install vagrant-aws
 $ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
 ```
