@@ -123,6 +123,7 @@ config.vm.box = "coreos-%s" % $update_channel
 		a.ami = ENV['AWS_AMI'] 
 		a.region = ENV['AWS_REGION'] 
 		a.instance_type = ENV['AWS_INSTANCE']
+		a.security_groups =  ENV['AWS_SECURITYGROUP']
 		a.ami = ENV['AWS_AMI']
 		a.user_data = theuserdata
                 override.ssh.private_key_path = ENV['AWS_KEYPATH']

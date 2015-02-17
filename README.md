@@ -17,6 +17,7 @@ If you want to setup AWS now - you need to create a myawsvars_file or add them t
 $ cat >> myawsvars_file << _SCRIPT_
 export AWS_KEY='KEY FROM AWS CONSOLE'
 export AWS_SECRET='SECRET FROM AWS CONSOLE'
+exoirt AWS_SECURITY_GROUP='NAME OF VPC SEC GROUP' you need one that allows 22/tcp and 6783/tcp and 6783/udp inbound 
 export AWS_KEYNAME='Name of the AWS Keypair you are using'
 export AWS_KEYPATH='/path/to/keyfile-for-above-named-pair.pem'
 export AWS_AMI='whichever ami you want from https://coreos.com/docs/running-coreos/cloud-providers/ec2/ - make sure its available via the region you select next'
@@ -32,6 +33,7 @@ I left out my security keys for obvious reasons:
 $ cat myawsvars_file
 export AWS_KEY='XXXXXXX'
 export AWS_SECRET='XXXXXXXXXXX'
+export AWS_SECRET='theweaves'
 export AWS_KEYNAME='myenv-key'
 export AWS_KEYPATH='/Users/stlalpha/ec2keypairs/myenv-key.pem'
 export AWS_AMI='ami-f3702bc3'
