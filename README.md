@@ -5,7 +5,7 @@ _NOTE:_ This is a fork of [@lukebond's coreos-vagrant variant that added in weav
 _NOTE2 (From previous fork):_ This post borrows directly from [@errordeveloper's piece on the Weave Blog](http://weaveblog.com/2014/10/28/running-a-weave-network-on-coreos/) (I suggest you read that first). All I've done is saved you half an hour of rejigging the CoreOS Vagrant repository to incorporate the required changes and removed the ping example. What this gives you is a clean slate of CoreOS with Weave installed and ready to use. If you're used to using the stock CoreOS Vagrant cluster, it is now "plus Weave"! 
 
 ## Installation
-I've forked the CoreOS Vagrant Weave repository and made the requisite changes. So -  create an AWS Access Key, setup your AWS environment variables, and vagrant up (for a 3-node virtualbox cluster or vagrant up --provider=aws for a 3-node cluster on AWS.  The discovery tokens are updated dynamically at every "vagrant up".  If you want to run a cluster larger (much larger?) than 3 - just edit the numinstances variable in config.rb, save and follow the directions below.  I've tested it to 20 nodes on AWS.
+I've forked the CoreOS Vagrant Weave repository and made the requisite changes. So -  create an AWS Access Key, setup your AWS environment variables, and vagrant up (for a 3-node virtualbox cluster or vagrant up --provider=aws for a 3-node cluster on AWS.  The discovery tokens are updated dynamically at every "vagrant up".  If you want to run a cluster larger (much larger?) than 3 - just edit the num_instances variable in config.rb, save and follow the directions below.  I've tested it to 20 nodes on AWS.
 ```
 $ git clone https://github.com/stlalpha/coreos-vagrant-weave-multi.git
 $ cd coreos-vagrant-weave-multi
