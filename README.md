@@ -1,6 +1,6 @@
 If you don't know what Weave is, read about it [here](https://github.com/zettio/weave).
 
-_NOTE:_ This is a fork of [@lukebond's coreos-vagrant variant that added in weave](https://github.com/lukebond/coreos-vagrant-weave).  I have taken it and added support for AWS, as well as made it dynamically scalable.  So when you are done, you get a clean N-node setupof clustered CoreOS plus Weave and it will run on top of either virtual-box or AWS.
+_NOTE:_ This is a fork of [@lukebond's coreos-vagrant variant that added in weave](https://github.com/lukebond/coreos-vagrant-weave).  I have taken it and added support for AWS, as well as made it dynamically scalable.  So when you are done, you get a clean N-node setup of clustered CoreOS plus Weave and it will run on top of either virtual-box or AWS.
 
 _NOTE2 (From previous fork):_ This post borrows directly from [@errordeveloper's piece on the Weave Blog](http://weaveblog.com/2014/10/28/running-a-weave-network-on-coreos/) (I suggest you read that first). All I've done is saved you half an hour of rejigging the CoreOS Vagrant repository to incorporate the required changes and removed the ping example. What this gives you is a clean slate of CoreOS with Weave installed and ready to use. If you're used to using the stock CoreOS Vagrant cluster, it is now "plus Weave"! 
 
