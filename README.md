@@ -133,7 +133,6 @@ Last login: Mon Feb 16 23:29:30 2015 from 24.207.140.202
 CoreOS stable (557.2.0)
 core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.2/24
 core@ip-X-X-X-X ~ $ logout
-You will need VirtualBox and Vagrant installed. I'm using Vagrant 1.6.3 and VirtualBox 4.3.12 on OS/X Yosemite.
 ```
 And finally node 3 - and verify ping connectivity:
 ```
