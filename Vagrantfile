@@ -18,8 +18,11 @@ end
 
 CONFIG = File.join(File.dirname(__FILE__), "config.rb")
 
-#are we executing for aws?
+#what provider are we executing for?
 provider_is_aws  = (!ARGV.nil? && ARGV.join('').include?('provider=aws'))
+provider_is_vmware = (!ARGV.nil? && ARGV.join('').include?('provider=vmware'))
+provider_is_virtualbox = (!ARGV.nil? && ARGV.join('').include?('provider=virtualbox'))
+
 
 # Defaults :q# Attempt to apply the deprecated environment variable NUM_INSTANCES to
 # $num_instances while allowing config.rb to override it
@@ -132,8 +135,10 @@ config.vm.box = "coreos-%s" % $update_channel
 	end
 
 	unless File.exist?(cloud_config_path) and provider_is_aws
+	if provider_is_vmware then
         config.vm.provision :file, :source => "#{cloud_config_path}", :destination => "/tmp/vagrantfile-user-data"
         config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
+	end
 	end
 
     end

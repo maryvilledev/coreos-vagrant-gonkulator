@@ -1,0 +1,62 @@
+#cloud-config
+
+---
+coreos:
+  etcd:
+    discovery: https://discovery.etcd.io/9a52c25ed1bb9981315533e9fecf6060
+    addr: $private_ipv4:4001
+    peer-addr: $private_ipv4:7001
+  fleet:
+    public-ip: $private_ipv4
+  units:
+  - name: etcd.service
+    command: start
+  - name: fleet.service
+    command: start
+  - name: docker-tcp.socket
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      Description=Docker Socket for the API
+
+      [Socket]
+      ListenStream=2375
+      Service=docker.service
+      BindIPv6Only=both
+
+      [Install]
+      WantedBy=sockets.target
+  - name: 10-weave.network
+    runtime: false
+    content: |
+      [Match]
+      Type=bridge
+      Name=weave*
+
+      [Network]
+  - name: install-weave.service
+    command: start
+    enable: true
+    content: "[Unit]\nAfter=network-online.target\nAfter=docker.service\nDescription=Install
+      Weave\nDocumentation=http://zettio.github.io/weave/\nRequires=network-online.target\nRequires=docker.service\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStartPre=/usr/bin/wget
+      -N -P /opt/bin \\\n    https://raw.github.com/zettio/weave/master/weave \nExecStartPre=/usr/bin/chmod
+      +x /opt/bin/weave\nExecStartPre=/bin/touch /etc/weave.env\nExecStartPre=/usr/bin/docker
+      pull zettio/weave:latest\nExecStart=/bin/echo Weave Installed\n"
+  - name: weave.service
+    command: start
+    enable: true
+    content: "[Unit]\nAfter=install-weave.service\nDescription=Weave Network\nDocumentation=http://zettio.github.io/weave/\nRequires=install-weave.service\n\n[Service]
+      \nExecStartPre=/opt/bin/arewethereyet.sh \nExecStart=/usr/bin/docker logs -f
+      weave\nSuccessExitStatus=2\nExecStop=/opt/bin/weave stop\n"
+write_files:
+- path: /opt/bin/arewethereyet.sh
+  permissions: 750
+  owner: root
+  content: |
+    #!/bin/bash
+    while [ -z $AREWETHEREYET ] ; do
+    AREWETHEREYET=$(/usr/bin/etcdctl get /weave/servers/master 2>/dev/null) ;
+    sleep 10
+    done
+    /opt/bin/weave launch $AREWETHEREYET
