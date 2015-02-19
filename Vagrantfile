@@ -22,6 +22,7 @@ CONFIG = File.join(File.dirname(__FILE__), "config.rb")
 provider_is_aws  = (!ARGV.nil? && ARGV.join('').include?('provider=aws'))
 provider_is_vmware = (!ARGV.nil? && ARGV.join('').include?('provider=vmware'))
 provider_is_virtualbox = (!ARGV.nil? && ARGV.join('').include?('provider=virtualbox'))
+provider_is_google = (!ARGV.nil? && ARGV.join('').include?('provider=google'))
 
 
 # Defaults :q# Attempt to apply the deprecated environment variable NUM_INSTANCES to
@@ -51,6 +52,14 @@ config.vm.box = "coreos-%s" % $update_channel
     v.functional_vboxsf     = false
   end
 
+ ["google"].each do |google|
+	config.vm.provider google do |z, override|
+        override.vm.box = "gce"
+	override.vm.box_url = "https://github.com/mitchellh/vagrant-google/raw/master/google.box"
+	override.vm.box_version = ""
+	end
+     end
+
  ["aws"].each do |aws|
      config.vm.provider aws do |x, override|
      override.vm.box = "dummy"
@@ -69,11 +78,21 @@ config.vm.box = "coreos-%s" % $update_channel
       config.vm.hostname = vm_name
 
       if config.vm.hostname == "core-01"
-       theuserdata = File.read("user-data.weavemaster") 
-       cloud_config_path = File.join(File.dirname(__FILE__), "user-data.weavemaster")
-      else
-       theuserdata = File.read("user-data")
-       cloud_config_path = File.join(File.dirname(__FILE__), "user-data")
+	if provider_is_vmware or provider_is_google
+	theuserdata = File.read("user-data.weavemaster.vmware")
+        cloud_config_path = File.join(File.dirname(__FILE__), "user-data.weavemaster.vmware")
+	else
+	theuserdata = File.read("user-data.weavemaster")
+	cloud_config_path = File.join(File.dirname(__FILE__), "user-data.weavemaster")
+	end
+	else
+        if provider_is_vmware or provider_is_google
+	theuserdata =  File.read("user-data.vmware")
+	cloud_config_path = File.join(File.dirname(__FILE__), "user-data.vmware")
+	else
+	theuserdata = File.read("user-data")
+	cloud_config_path = File.join(File.dirname(__FILE__), "user-data")
+	end
     end
 
       if $enable_serial_logging
@@ -117,6 +136,22 @@ config.vm.box = "coreos-%s" % $update_channel
       #config.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
       config.vm.synced_folder '.', '/vagrant', disabled: true
 
+     ##do the goog setup
+     ["google"].each do |google|
+	config.vm.provider google do |g, override|
+		g.google_project_id = ENV['GC_PROJECT']
+		g.google_client_email = ENV['GC_CLIENT_EMAIL']
+		g.google_key_location = ENV['GC_KEY_LOCATION']
+		g.machine_type = ENV['GC_MACHINETYPE']
+		g.image = ENV['GC_IMAGE']
+		g.name = vm_name
+		g.metadata = {'user-data' => theuserdata }
+		override.ssh.username = "core"
+		override.ssh.private_key_path = "~/.ssh/google_compute_engine"
+	#	override.ssh.private_key_path = "~/.ssh/id_rsa"
+		end
+	    end
+
      ##do the aws setup
      ["aws"].each do |aws|
         config.vm.provider aws do |a, override|
@@ -134,11 +169,9 @@ config.vm.box = "coreos-%s" % $update_channel
            end
 	end
 
-	unless File.exist?(cloud_config_path) and provider_is_aws
-	if provider_is_vmware then
+	unless provider_is_aws or provider_is_google
         config.vm.provision :file, :source => "#{cloud_config_path}", :destination => "/tmp/vagrantfile-user-data"
         config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
-	end
 	end
 
     end
