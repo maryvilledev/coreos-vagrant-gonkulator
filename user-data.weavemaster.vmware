@@ -3,7 +3,7 @@
 ---
 coreos:
   etcd:
-    discovery: https://discovery.etcd.io/26e4aa374199739965a58f4e441d08a5
+    discovery: https://discovery.etcd.io/8dbe3e05aa8f38a43ed66067cdde9e06
     addr: $private_ipv4:4001
     peer-addr: $private_ipv4:7001
   fleet:
@@ -38,7 +38,7 @@ coreos:
   - name: install-weave.service
     command: start
     enable: true
-    content: "[Unit]\nAfter=network-online.target\nAfter=docker.service\nDescription=Install
+    content: "[Unit]\nAfter=network-online.target\nAfter=docker.service\nAfter=etcd.service\nDescription=Install
       Weave\nDocumentation=http://zettio.github.io/weave/\nRequires=network-online.target\nRequires=docker.service\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStartPre=/usr/bin/wget
       -N -P /opt/bin \\\n    https://raw.github.com/zettio/weave/master/weave \nExecStartPre=/usr/bin/chmod
       +x /opt/bin/weave\nExecStartPre=/usr/bin/docker pull zettio/weave:latest\nExecStart=/bin/echo
@@ -48,7 +48,7 @@ coreos:
     enable: true
     content: "[Unit]\nAfter=install-weave.service\nDescription=Weave Network\nDocumentation=http://zettio.github.io/weave/\nRequires=install-weave.service\n\n[Service]\nEnvironmentFile=/etc/environment\nExecStartPre=/opt/bin/weave
       launch \nExecStartPre=/usr/bin/etcdctl mkdir /weave/servers\nExecStartPre=/usr/bin/etcdctl
-      mk /weave/servers/master ${COREOS_PUBLIC_IPV4}\nExecStart=/usr/bin/docker logs
+      mk /weave/servers/master ${COREOS_PRIVATE_IPV4}\nExecStart=/usr/bin/docker logs
       -f weave\nSuccessExitStatus=2\nExecStop=/opt/bin/weave stop\n"
 write_files:
 - path: /etc/weave.env

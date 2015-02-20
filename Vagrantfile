@@ -147,8 +147,7 @@ config.vm.box = "coreos-%s" % $update_channel
 		g.name = vm_name
 		g.metadata = {'user-data' => theuserdata }
 		override.ssh.username = "core"
-		override.ssh.private_key_path = "~/.ssh/google_compute_engine"
-	#	override.ssh.private_key_path = "~/.ssh/id_rsa"
+		override.ssh.private_key_path = ENV['GC_OVERRIDE_KEY']
 		end
 	    end
 
