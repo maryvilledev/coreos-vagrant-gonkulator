@@ -238,7 +238,7 @@ Possible values for DO_SIZE are:
 
 (DO also has 32, 48 and 64gb options but my account isnt enabled for them)
 
-The example mydigitalocenvars_file above will create 1GB/1CPU/30GBSSD coreos-stable nodes in the San Francisco 1 region.
+The example mydigitaloceanvars_file above will create 1GB/1CPU/30GBSSD coreos-stable nodes in the San Francisco 1 region.
 
 Source the file and vagrant up!
 ```
