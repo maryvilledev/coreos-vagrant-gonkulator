@@ -196,7 +196,7 @@ The key's randomart image is:
 |        ....o    |
 +-----------------+
 $
-
+```
 Clone the repository and install the necessary plugin:
 ```
 $ git clone https://github.com/stlalpha/coreos-vagrant-gonkulator.git
