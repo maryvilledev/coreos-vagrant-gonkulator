@@ -15,7 +15,6 @@ unless Vagrant.has_plugin?("vagrant-aws") and Vagrant.has_plugin?("vagrant-googl
    exit
 end
 
-
 CONFIG = File.join(File.dirname(__FILE__), "config.rb")
 
 #what provider are we executing for?
@@ -23,8 +22,8 @@ provider_is_aws  = (!ARGV.nil? && ARGV.join('').include?('provider=aws'))
 provider_is_vmware = (!ARGV.nil? && ARGV.join('').include?('provider=vmware'))
 provider_is_virtualbox = (!ARGV.nil? && ARGV.join('').include?('provider=virtualbox'))
 provider_is_google = (!ARGV.nil? && ARGV.join('').include?('provider=google'))
-
-
+provider_is_digital_ocean = (!ARGV.nil? && ARGV.join('').include?('provider=digital_ocean'))
+  
 # Defaults :q# Attempt to apply the deprecated environment variable NUM_INSTANCES to
 # $num_instances while allowing config.rb to override it
 if ENV["NUM_INSTANCES"].to_i > 0 && ENV["NUM_INSTANCES"]
@@ -51,11 +50,20 @@ config.vm.box = "coreos-%s" % $update_channel
     v.check_guest_additions = false
     v.functional_vboxsf     = false
   end
-
+  
+	
  ["google"].each do |google|
 	config.vm.provider google do |z, override|
         override.vm.box = "gce"
 	override.vm.box_url = "https://github.com/mitchellh/vagrant-google/raw/master/google.box"
+	override.vm.box_version = ""
+	end
+     end
+     
+     ["digital_ocean"].each do |digital_ocean|
+	config.vm.provider digital_ocean do |z, override|
+        override.vm.box = "digital_ocean"
+	override.vm.box_url = "https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box"
 	override.vm.box_version = ""
 	end
      end
@@ -76,9 +84,10 @@ config.vm.box = "coreos-%s" % $update_channel
   (1..$num_instances).each do |i|
     config.vm.define vm_name = "core-%02d" % i do |config|
       config.vm.hostname = vm_name
-
+#If this is core-01 - make it the weave master - and if vmware or google, use the vmware user-data templates
+#because it needs to use the private ip's versus the public ip's
       if config.vm.hostname == "core-01"
-	if provider_is_vmware or provider_is_google
+	if provider_is_vmware or provider_is_google or provider_is_digital_ocean
 	theuserdata = File.read("user-data.weavemaster.vmware")
         cloud_config_path = File.join(File.dirname(__FILE__), "user-data.weavemaster.vmware")
 	else
@@ -86,10 +95,12 @@ config.vm.box = "coreos-%s" % $update_channel
 	cloud_config_path = File.join(File.dirname(__FILE__), "user-data.weavemaster")
 	end
 	else
-        if provider_is_vmware or provider_is_google
+#otherwise - if its not core-01 - and provider is google or vmware - set the non-master user-data file
+        if provider_is_vmware or provider_is_google or provider_is_digital_ocean
 	theuserdata =  File.read("user-data.vmware")
 	cloud_config_path = File.join(File.dirname(__FILE__), "user-data.vmware")
 	else
+#otherwise - just set it to the user-data file
 	theuserdata = File.read("user-data")
 	cloud_config_path = File.join(File.dirname(__FILE__), "user-data")
 	end
@@ -136,7 +147,20 @@ config.vm.box = "coreos-%s" % $update_channel
       #config.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
       config.vm.synced_folder '.', '/vagrant', disabled: true
 
-     ##do the goog setup
+
+ ##do the google setup
+     ["digital_ocean"].each do |digital_ocean|
+	config.vm.provider digital_ocean do |d, override|
+   		d.token = ENV['DO_TOKEN']
+    	d.image = ENV['DO_IMAGE']
+    	d.region = ENV['DO_REGION']
+    	d.size = ENV['DO_SIZE']
+		override.ssh.username = "core"
+		override.ssh.private_key_path = ENV['DO_OVERRIDE_KEY']
+		end
+	    end
+     
+     ##do the google setup
      ["google"].each do |google|
 	config.vm.provider google do |g, override|
 		g.google_project_id = ENV['GC_PROJECT']
@@ -157,17 +181,17 @@ config.vm.box = "coreos-%s" % $update_channel
                 a.access_key_id = ENV['AWS_KEY']
                 a.secret_access_key = ENV['AWS_SECRET']
                 a.keypair_name = ENV['AWS_KEYNAME']
-		a.ami = ENV['AWS_AMI'] 
-		a.region = ENV['AWS_REGION'] 
-		a.instance_type = ENV['AWS_INSTANCE']
-		a.security_groups =  ENV['AWS_SECURITYGROUP']
-		a.ami = ENV['AWS_AMI']
-		a.user_data = theuserdata
+				a.region = ENV['AWS_REGION'] 
+				a.instance_type = ENV['AWS_INSTANCE']
+				a.security_groups =  ENV['AWS_SECURITYGROUP']
+				a.ami = ENV['AWS_AMI']
+				a.user_data = theuserdata
                 override.ssh.private_key_path = ENV['AWS_KEYPATH']
                 override.ssh.username = "core"
            end
 	end
 
+#If the provider is google or aws - do not try to do the file/shell providers
 	unless provider_is_aws or provider_is_google
         config.vm.provision :file, :source => "#{cloud_config_path}", :destination => "/tmp/vagrantfile-user-data"
         config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
