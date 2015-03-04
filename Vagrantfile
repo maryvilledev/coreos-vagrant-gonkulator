@@ -87,7 +87,7 @@ config.vm.box = "coreos-%s" % $update_channel
 #If this is core-01 - make it the weave master - and if vmware or google, use the vmware user-data templates
 #because it needs to use the private ip's versus the public ip's
       if config.vm.hostname == "core-01"
-	if provider_is_vmware or provider_is_google or provider_is_digital_ocean
+	if provider_is_vmware or provider_is_google 
 	theuserdata = File.read("user-data.weavemaster.vmware")
         cloud_config_path = File.join(File.dirname(__FILE__), "user-data.weavemaster.vmware")
 	else
@@ -96,7 +96,7 @@ config.vm.box = "coreos-%s" % $update_channel
 	end
 	else
 #otherwise - if its not core-01 - and provider is google or vmware - set the non-master user-data file
-        if provider_is_vmware or provider_is_google or provider_is_digital_ocean
+        if provider_is_vmware or provider_is_google 
 	theuserdata =  File.read("user-data.vmware")
 	cloud_config_path = File.join(File.dirname(__FILE__), "user-data.vmware")
 	else
@@ -148,7 +148,7 @@ config.vm.box = "coreos-%s" % $update_channel
       config.vm.synced_folder '.', '/vagrant', disabled: true
 
 
- ##do the google setup
+ ##do the digital_ocean setup
      ["digital_ocean"].each do |digital_ocean|
 	config.vm.provider digital_ocean do |d, override|
    		d.token = ENV['DO_TOKEN']
@@ -156,8 +156,11 @@ config.vm.box = "coreos-%s" % $update_channel
 	    	d.region = ENV['DO_REGION']
     		d.size = ENV['DO_SIZE']
 		d.root_username = 'core'
-		override.ssh.username = "core"
+		d.private_networking = true 
+		override.ssh.username = 'core'
 		override.ssh.private_key_path = ENV['DO_OVERRIDE_KEY']
+		d.user_data = theuserdata
+		d.setup = false
 		end
 	    end
      
@@ -193,7 +196,7 @@ config.vm.box = "coreos-%s" % $update_channel
 	end
 
 #If the provider is google or aws - do not try to do the file/shell providers
-	unless provider_is_aws or provider_is_google
+	unless provider_is_aws or provider_is_google or provider_is_digital_ocean
         config.vm.provision :file, :source => "#{cloud_config_path}", :destination => "/tmp/vagrantfile-user-data"
         config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
 	end
