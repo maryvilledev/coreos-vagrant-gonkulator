@@ -5,13 +5,13 @@ require 'fileutils'
 
 Vagrant.require_version ">= 1.6.0"
 
-unless Vagrant.has_plugin?("vagrant-aws")
+unless Vagrant.has_plugin?("vagrant-aws") and Vagrant.has_plugin?("vagrant-google")
    puts "-- WARNING --"
-   puts "This Vagrantfile makes use of the vagrant-aws plugin."
-   puts "This package is necessary to interact with aws."
+   puts "This Vagrantfile makes use of the vagrant-aws and vagrant-google plugins."
+   puts "These packages are necessary to interact with aws and gce"
    puts " "
-   puts "execute: \"vagrant plugin install vagrant-aws\" to continue"
-
+   puts "execute: \"vagrant plugin install vagrant-aws\" and"
+   puts "execute: \"vagrant plugin install vagrant-google\" to continue."
    exit
 end
 
