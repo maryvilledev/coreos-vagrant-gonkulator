@@ -1,10 +1,10 @@
 If you don't know what Weave is, read about it [here](https://github.com/zettio/weave).
 
-_NOTE:_ This is a fork of [@lukebond's coreos-vagrant variant that added in weave](https://github.com/lukebond/coreos-vagrant-weave).  I have taken it and added support for Google Compute Engine, AWS and got VMWare to work, as well as made it dynamically scalable.  So when you are done, you get a clean N-node setup of clustered CoreOS plus Weave and it will run on top of either virtual-box, VMWare Fusion, VMWare Workstation, AWS or Google Compute Engine!  I need to update the readme to provide google compute instructions, but you can see the env vars it is looking for at the end of the Vagrantfile.  Documentation Updates soon.
+_NOTE:_ This is a fork of [@lukebond's coreos-vagrant variant that added in weave](https://github.com/lukebond/coreos-vagrant-weave).  I have taken it and added support for Digital Ocean, Google Compute Engine, AWS and got VMWare to work, as well as made it dynamically scalable.  So when you are done, you get a clean N-node setup of clustered CoreOS plus Weave and it will run on top of either virtual-box, VMWare Fusion, VMWare Workstation, AWS, Google Compute Engine or Digital Ocean!  I need to update the readme to provide google compute instructions, but you can see the env vars it is looking for at the end of the Vagrantfile.  More documentation Updates soon.
 
 _NOTE2 (From previous fork):_ This post borrows directly from [@errordeveloper's piece on the Weave Blog](http://weaveblog.com/2014/10/28/running-a-weave-network-on-coreos/) (I suggest you read that first). All I've done is saved you half an hour of rejigging the CoreOS Vagrant repository to incorporate the required changes and removed the ping example. What this gives you is a clean slate of CoreOS with Weave installed and ready to use. If you're used to using the stock CoreOS Vagrant cluster, it is now "plus Weave"! 
 
-## Installation
+## Installation for default 3-node setup on AWS
 I've forked the CoreOS Vagrant Weave repository and made the requisite changes. So -  create an AWS Access Key, setup your AWS environment variables, and vagrant up (for a 3-node virtualbox cluster, or vagrant up --provider=aws for a 3-node cluster on AWS.  If you have the Vmware vagrant plugins installed you can do vagrant up --provider=vmware_fusion or vagrant up --provider=vmware_workstation.  You should have the VMWare or Virtualbox plugins installed prior to following these instructions. The discovery tokens are updated dynamically at every "vagrant up".  If you want to run a cluster larger (much larger?) than 3 - just edit the num_instances variable in config.rb, save and follow the directions below.  I've tested it to 20 nodes on AWS.
 ```
 $ git clone https://github.com/stlalpha/coreos-vagrant-gonkulator.git
@@ -12,7 +12,7 @@ $ cd coreos-vagrant-gonkulator
 $ vagrant plugin install vagrant-aws
 $ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
 ```
-If you want to setup AWS now - you need to create a myawsvars_file or add them to your running environment, continue below.  If you do not want to setup/run AWS now - just vagrant up <enter>
+You need to create a myawsvars_file or add them to your running environment, continue below:
 ```
 $ cat >> myawsvars_file << _SCRIPT_
 export AWS_KEY='KEY FROM AWS CONSOLE'
@@ -170,3 +170,139 @@ rtt min/avg/max/mdev = 0.053/0.062/0.080/0.012 ms
 core@ip-X-X-X-X ~ $ 
 ```
 Boom.  Three nodes, on aws, with a weave VLAN hooked to the coreos host.  Enjoy!
+
+## Installation for default 3-node setup on Digital Ocean
+Generate a rsa keypair for digital ocean.:
+```
+$ ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/Users/jm/.ssh/id_rsa): /tmp/keypairs/digital_ocean_rsa
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /tmp/keypairs/digital_ocean_rsa.
+Your public key has been saved in /tmp/keypairs/digital_ocean_rsa.pub.
+The key fingerprint is:
+b9:fb:9f:21:e0:33:e1:59:59:00:6a:d2:13:d3:e5:7b jm@foo.host
+The key's randomart image is:
++--[ RSA 2048]----+
+|      ...   .    |
+|     . . o o     |
+|    . . . o .    |
+|   O . . +   .   |
+|    . + S o . E  |
+|     . * o   .   |
+|      o = . .    |
+|         + . o   |
+|        ....o    |
++-----------------+
+$
+
+Clone the repository and install the necessary plugin:
+```
+$ git clone https://github.com/stlalpha/coreos-vagrant-gonkulator.git
+$ cd coreos-vagrant-gonkulator
+$ vagrant plugin install vagrant-digitalocean
+$ vagrant box add dummy https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box
+```
+Login to the Digital Ocean console, click on Apps & API, and under Personal Access Tokens, GENERATE NEW TOKEN - and you want it to be read and write.
+That token value gets stored as DO_TOKEN below.
+
+You need to create a mydigitaloceanvars_file or add them to your running environment, continue below:
+```
+$ cat >> mydigitaloceanvars_file << _SCRIPT_
+export DO_OVERRIDE_KEY='/tmp/keypairs/digital_ocean_rsa'
+export DO_SIZE='1GB'
+export DO_REGION='sfo1'
+export DO_IMAGE='coreos-stable'
+export DO_TOKEN='TOKEN VALUE YOU GENERATED ABOVE'
+_SCRIPT_
+
+```
+There are available several DO_REGIONS available, but this setup only uses those that support private networking and user-data.  Those are:
+
+New York 3 - ny3 
+San Francisco 1 - sfo1
+Singapore 1 - sgp1
+London 1 - lon1
+
+Size definitions are variable - check out the "CREATE DROPLET" screen from the console to see your options and costs.
+
+Possible values for DO_SIZE are:
+
+512MB
+1GB
+2GB
+4GB
+8GB
+16GB
+
+(DO also has 32, 48 and 64gb options but my account isnt enabled for them)
+
+The example mydigitalocenvars_file above will create 1GB/1CPU/30GBSSD coreos-stable nodes in the San Francisco 1 region.
+
+Source the file and vagrant up!
+```
+$ source ./mydigitaloceanvars_file
+$ vagrant up --provider=digital_ocean
+Bringing machine 'core-01' up with 'digital_ocean' provider...
+Bringing machine 'core-02' up with 'digital_ocean' provider...
+Bringing machine 'core-03' up with 'digital_ocean' provider...
+==> core-01: Using existing SSH key: Vagrant
+==> core-01: Creating a new droplet...
+==> core-01: Assigned IP address: X.X.X.X
+==> core-01: Private IP address: 10.0.0.100
+==> core-02: Using existing SSH key: Vagrant
+==> core-02: Creating a new droplet...
+==> core-02: Assigned IP address: Y.Y.Y.Y
+==> core-02: Private IP address: 10.0.0.101
+==> core-03: Using existing SSH key: Vagrant
+==> core-03: Creating a new droplet...
+==> core-03: Assigned IP address: Z.Z.Z.Z
+==> core-03: Private IP address: 10.0.0.102
+$ vagrant ssh core-01
+CoreOS stable (557.2.0)
+core@core-01 ~ $ docker ps
+CONTAINER ID        IMAGE                           COMMAND                CREATED             STATUS              PORTS                                            NAMES
+e6d754450c7e        zettio/weave:git-b76e97ac2426   "/home/weave/weaver    32 seconds ago      Up 31 seconds       0.0.0.0:6783->6783/udp, 0.0.0.0:6783->6783/tcp   weave               
+core@core-01 ~ $ fleetctl list-machines
+MACHINE		IP		METADATA
+611f88d9...	X.X.X.X	-
+839370e7...	Y.Y.Y.Y	-
+f3e73c24...	Z.Z.Z.Z	-
+core@core-01 ~ $ sudo weave status
+weave router git-b76e97ac2426
+Encryption off
+Our name is 7a:2d:bd:d6:86:93 (core-01)
+Sniffing traffic on &{10 65535 ethwe 3e:e2:79:a5:5b:4b up|broadcast|multicast}
+MACs:
+3e:e2:79:a5:5b:4b -> 7a:2d:bd:d6:86:93 (2015-03-04 23:43:26.561169946 +0000 UTC)
+4e:66:9f:29:71:63 -> 7a:2d:bd:d6:86:93 (2015-03-04 23:43:27.153323746 +0000 UTC)
+7a:2d:bd:d6:86:93 -> 7a:2d:bd:d6:86:93 (2015-03-04 23:43:27.649879851 +0000 UTC)
+8a:58:09:bd:17:2d -> 7a:a3:c7:ba:ea:76 (2015-03-04 23:44:08.373185724 +0000 UTC)
+7a:a3:c7:ba:ea:76 -> 7a:a3:c7:ba:ea:76 (2015-03-04 23:44:09.131688271 +0000 UTC)
+ee:63:59:1e:19:d3 -> 7a:8a:dd:8d:cc:90 (2015-03-04 23:44:36.373658433 +0000 UTC)
+7a:8a:dd:8d:cc:90 -> 7a:8a:dd:8d:cc:90 (2015-03-04 23:44:37.560840106 +0000 UTC)
+Peers:
+Peer 7a:a3:c7:ba:ea:76 (core-03) (v6) (UID 12870450473383100439)
+   -> 7a:2d:bd:d6:86:93 (core-01) [X.X.X.X:6783]
+   -> 7a:8a:dd:8d:cc:90 (core-02) [Y.Y.Y.Y:6783]
+Peer 7a:8a:dd:8d:cc:90 (core-02) (v6) (UID 16201675749546345823)
+   -> 7a:a3:c7:ba:ea:76 (core-03) [Z.Z.Z.Z:32961]
+   -> 7a:2d:bd:d6:86:93 (core-01) [X.X.X.X:6783]
+Peer 7a:2d:bd:d6:86:93 (core-01) (v4) (UID 14668477160103522184)
+   -> 7a:a3:c7:ba:ea:76 (core-03) [Z.Z.Z.Z:40115]
+   -> 7a:8a:dd:8d:cc:90 (core-02) [Y.Y.Y.Y:60400]
+Routes:
+unicast:
+7a:2d:bd:d6:86:93 -> 00:00:00:00:00:00
+7a:a3:c7:ba:ea:76 -> 7a:a3:c7:ba:ea:76
+7a:8a:dd:8d:cc:90 -> 7a:8a:dd:8d:cc:90
+broadcast:
+7a:2d:bd:d6:86:93 -> [7a:a3:c7:ba:ea:76 7a:8a:dd:8d:cc:90]
+7a:a3:c7:ba:ea:76 -> []
+7a:8a:dd:8d:cc:90 -> []
+Reconnects:
+core@core-01 ~ $
+```
+
+Your cluster is complete and online.  You can follow the example above for AWS to play with weave!
