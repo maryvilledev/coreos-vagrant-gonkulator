@@ -152,9 +152,10 @@ config.vm.box = "coreos-%s" % $update_channel
      ["digital_ocean"].each do |digital_ocean|
 	config.vm.provider digital_ocean do |d, override|
    		d.token = ENV['DO_TOKEN']
-    	d.image = ENV['DO_IMAGE']
-    	d.region = ENV['DO_REGION']
-    	d.size = ENV['DO_SIZE']
+    		d.image = ENV['DO_IMAGE']
+	    	d.region = ENV['DO_REGION']
+    		d.size = ENV['DO_SIZE']
+		d.root_username = 'core'
 		override.ssh.username = "core"
 		override.ssh.private_key_path = ENV['DO_OVERRIDE_KEY']
 		end
@@ -181,11 +182,11 @@ config.vm.box = "coreos-%s" % $update_channel
                 a.access_key_id = ENV['AWS_KEY']
                 a.secret_access_key = ENV['AWS_SECRET']
                 a.keypair_name = ENV['AWS_KEYNAME']
-				a.region = ENV['AWS_REGION'] 
-				a.instance_type = ENV['AWS_INSTANCE']
-				a.security_groups =  ENV['AWS_SECURITYGROUP']
-				a.ami = ENV['AWS_AMI']
-				a.user_data = theuserdata
+		a.region = ENV['AWS_REGION'] 
+		a.instance_type = ENV['AWS_INSTANCE']
+		a.security_groups =  ENV['AWS_SECURITYGROUP']
+		a.ami = ENV['AWS_AMI']
+		a.user_data = theuserdata
                 override.ssh.private_key_path = ENV['AWS_KEYPATH']
                 override.ssh.username = "core"
            end
