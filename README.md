@@ -202,7 +202,7 @@ Clone the repository and install the necessary plugin:
 $ git clone https://github.com/stlalpha/coreos-vagrant-gonkulator.git
 $ cd coreos-vagrant-gonkulator
 $ vagrant plugin install vagrant-digitalocean
-$ vagrant box add dummy https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box
+$ vagrant box add digital_ocean https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box
 ```
 Login to the Digital Ocean console, click on Apps & API, and under Personal Access Tokens, GENERATE NEW TOKEN - and you want it to be read and write.
 That token value gets stored as DO_TOKEN below.
