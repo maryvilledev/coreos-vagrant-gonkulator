@@ -121,7 +121,7 @@ So - you can see that you have three peers listed, your coreos-weave cluster is 
 Let's create a new weave vlan on each of the nodes and verify connectivity:
 ```	
 $ vagrant ssh core-01
-Last login: Mon Feb 16 23:29:30 2015 from 24.207.140.202
+Last login: Mon Feb 16 23:29:30 2015 from Q.Q.Q.Q
 CoreOS stable (557.2.0)
 core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.1/24
 core@ip-X-X-X-X ~ $ logout
@@ -129,7 +129,7 @@ core@ip-X-X-X-X ~ $ logout
 now node 2
 ```
 $ vagrant ssh core-02
-Last login: Mon Feb 16 23:29:30 2015 from 24.207.140.202
+Last login: Mon Feb 16 23:29:30 2015 from Q.Q.Q.Q
 CoreOS stable (557.2.0)
 core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.2/24
 core@ip-X-X-X-X ~ $ logout
@@ -137,7 +137,7 @@ core@ip-X-X-X-X ~ $ logout
 And finally node 3 - and verify ping connectivity:
 ```
 $ vagrant ssh core-03
-Last login: Mon Feb 16 23:29:30 2015 from 24.207.140.202
+Last login: Mon Feb 16 23:29:30 2015 from Q.Q.Q.Q
 CoreOS stable (557.2.0)
 core@ip-X-X-X-X ~ $ sudo weave expose 172.99.0.3/24
 core@ip-X-X-X-X ~ $ ping 172.99.0.1 -c 3
@@ -390,7 +390,7 @@ $ vagrant ssh core-01
 ==> core-01: VM Status: ReadyRole
 ==> core-01: Looking for local port 22
 ==> core-01: Found port mapping 9001 --> 22
-Last login: Wed Mar 11 03:26:13 2015 from 24.207.140.202
+Last login: Wed Mar 11 03:26:13 2015 from Q.Q.Q.Q
 CoreOS stable (557.2.0)
 core@core-01 ~ $ fleetctl list-machines
 MACHINE		IP		METADATA
