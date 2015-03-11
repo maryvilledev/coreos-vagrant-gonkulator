@@ -62,7 +62,7 @@ if provider_is_google
 end
 
 if provider_is_digital_ocean
-	 unless Vagrant.has_plugin?("vagrant-digital_ocean") 
+	 unless Vagrant.has_plugin?("vagrant-digital-ocean") 
 	   puts "-- WARNING --"
 	   puts "You are attempting to bring the cluster online using digital ocean."
 	   puts "You do not have the digital ocean plugin installed."
