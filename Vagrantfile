@@ -38,7 +38,7 @@ if provider_is_aws
 end
 
 if provider_is_vmware
-	 unless Vagrant.has_plugin?("vagrant-vmware_fusion") or Vagrant.has_plugin?("vagrant-vmware_workstation")
+	 unless Vagrant.has_plugin?("vagrant-vmware-fusion") or Vagrant.has_plugin?("vagrant-vmware-workstation")
 	   puts "-- WARNING --"
 	   puts "You are attempting to bring the cluster online using vmware."
 	   puts "You do not have the vmware_fusion or vmware_workstation plugin installed."
