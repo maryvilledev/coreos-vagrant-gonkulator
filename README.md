@@ -212,7 +212,7 @@ You need to create a mydigitaloceanvars_file or add them to your running environ
 $ cat >> mydigitaloceanvars_file << _SCRIPT_
 export DO_OVERRIDE_KEY='/tmp/keypairs/digital_ocean_rsa'
 export DO_SIZE='1GB'
-export DO_REGION='sfo1'
+export DO_REGION='nyc3'
 export DO_IMAGE='coreos-stable'
 export DO_TOKEN='TOKEN VALUE YOU GENERATED ABOVE'
 _SCRIPT_
@@ -220,8 +220,7 @@ _SCRIPT_
 ```
 There are available several DO_REGIONS available, but this setup only uses those that support private networking and user-data.  Those are:
 
-New York 3 - ny3 
-San Francisco 1 - sfo1
+New York 3 - nyc3 
 Singapore 1 - sgp1
 London 1 - lon1
 
