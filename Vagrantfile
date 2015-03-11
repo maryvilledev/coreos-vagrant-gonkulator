@@ -5,15 +5,15 @@ require 'fileutils'
 
 Vagrant.require_version ">= 1.6.0"
 
-unless Vagrant.has_plugin?("vagrant-aws") and Vagrant.has_plugin?("vagrant-google")
-   puts "-- WARNING --"
-   puts "This Vagrantfile makes use of the vagrant-aws and vagrant-google plugins."
-   puts "These packages are necessary to interact with aws and gce"
-   puts " "
-   puts "execute: \"vagrant plugin install vagrant-aws\" and"
-   puts "execute: \"vagrant plugin install vagrant-google\" to continue."
-   exit
-end
+#unless Vagrant.has_plugin?("vagrant-aws") and Vagrant.has_plugin?("vagrant-google") and Vagrant.has_plugin?("vagrant-azure") and Vagrant.has_plugin?("vagrant-digitalocean")
+#   puts "-- WARNING --"
+#   puts "This Vagrantfile makes use of the vagrant-aws and vagrant-google plugins."
+#   puts "These packages are necessary to interact with aws and gce"
+#   puts " "
+#   puts "execute: \"vagrant plugin install vagrant-aws\" and"
+#   puts "execute: \"vagrant plugin install vagrant-google\" to continue."
+#   exit
+#end
 
 CONFIG = File.join(File.dirname(__FILE__), "config.rb")
 
@@ -23,8 +23,71 @@ provider_is_vmware = (!ARGV.nil? && ARGV.join('').include?('provider=vmware'))
 provider_is_virtualbox = (!ARGV.nil? && ARGV.join('').include?('provider=virtualbox'))
 provider_is_google = (!ARGV.nil? && ARGV.join('').include?('provider=google'))
 provider_is_digital_ocean = (!ARGV.nil? && ARGV.join('').include?('provider=digital_ocean'))
+provider_is_azure = (!ARGV.nil? && ARGV.join('').include?('provider=azure'))
+
+#complain about missing plugins depending on provider
+if provider_is_aws
+	 unless Vagrant.has_plugin?("vagrant-aws") 
+	   puts "-- WARNING --"
+	   puts "You are attempting to bring the cluster online using aws."
+	   puts "You do not have the aws plugin installed."
+	   puts " "
+	   puts "execute: \"vagrant plugin install vagrant-aws\" to continue."
+	   exit
+	end
+end
+
+if provider_is_vmware
+	 unless Vagrant.has_plugin?("vagrant-vmware_fusion") or Vagrant.has_plugin?("vagrant-vmware_workstation")
+	   puts "-- WARNING --"
+	   puts "You are attempting to bring the cluster online using vmware."
+	   puts "You do not have the vmware_fusion or vmware_workstation plugin installed."
+	   puts "One of these packages are necessary to interact with vmware."
+	   puts " "
+	   puts "execute: \"vagrant plugin install vagrant-vmware_fusion\" or"
+	   puts "execute: \"vagrant plugin install vagrant-vmware_workstation\" to continue."
+	   exit
+	end
+end
+
+if provider_is_google
+	 unless Vagrant.has_plugin?("vagrant-google") 
+	   puts "-- WARNING --"
+	   puts "You are attempting to bring the cluster online using google compute engine."
+	   puts "You do not have the google plugin installed."
+	   puts " "
+	   puts "execute: \"vagrant plugin install vagrant-google\" to continue."
+	   exit
+	end
+end
+
+if provider_is_digital_ocean
+	 unless Vagrant.has_plugin?("vagrant-digital_ocean") 
+	   puts "-- WARNING --"
+	   puts "You are attempting to bring the cluster online using digital ocean."
+	   puts "You do not have the digital ocean plugin installed."
+	   puts " "
+	   puts "execute: \"vagrant plugin install vagrant-digitalocean\" to continue."
+	   exit
+	end
+end
+
+if provider_is_azure
+	 unless Vagrant.has_plugin?("vagrant-azure") 
+	   puts "-- WARNING --"
+	   puts "You are attempting to bring the cluster online using microsoft azure."
+	   puts "You do not have the azure plugin installed."
+	   puts " "
+	   puts "execute: \"vagrant plugin install vagrant-azure\" to continue."
+	   exit
+	end
+end
+
+
+#azure ssh port increment var 
+ssh_port = 9000
   
-# Defaults :q# Attempt to apply the deprecated environment variable NUM_INSTANCES to
+# Defaults Attempt to apply the deprecated environment variable NUM_INSTANCES to
 # $num_instances while allowing config.rb to override it
 if ENV["NUM_INSTANCES"].to_i > 0 && ENV["NUM_INSTANCES"]
   $num_instances = ENV["NUM_INSTANCES"].to_i
@@ -39,6 +102,7 @@ Vagrant.configure("2") do |config|
 config.vm.box = "coreos-%s" % $update_channel
   config.vm.box_version = ">= 308.0.1"
   config.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json" % $update_channel
+  config.vm.boot_timeout = 1000
 
   config.vm.provider :vmware_fusion do |vb, override|
     override.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant_vmware_fusion.json" % $update_channel
@@ -68,6 +132,15 @@ config.vm.box = "coreos-%s" % $update_channel
 	end
      end
 
+    
+     ["azure"].each do |azure|
+	config.vm.provider azure do |q, override|
+        override.vm.box = "azure"
+	override.vm.box_url = "https://github.com/msopentech/vagrant-azure/raw/master/dummy.box"
+	override.vm.box_version = ""
+	end
+     end
+
  ["aws"].each do |aws|
      config.vm.provider aws do |x, override|
      override.vm.box = "dummy"
@@ -84,10 +157,11 @@ config.vm.box = "coreos-%s" % $update_channel
   (1..$num_instances).each do |i|
     config.vm.define vm_name = "core-%02d" % i do |config|
       config.vm.hostname = vm_name
+      ssh_port = (ssh_port + 1)
 #If this is core-01 - make it the weave master - and if vmware or google, use the vmware user-data templates
 #because it needs to use the private ip's versus the public ip's
       if config.vm.hostname == "core-01"
-	if provider_is_vmware or provider_is_google 
+	if provider_is_vmware or provider_is_google or provider_is_azure
 	theuserdata = File.read("user-data.weavemaster.vmware")
         cloud_config_path = File.join(File.dirname(__FILE__), "user-data.weavemaster.vmware")
 	else
@@ -96,7 +170,7 @@ config.vm.box = "coreos-%s" % $update_channel
 	end
 	else
 #otherwise - if its not core-01 - and provider is google or vmware - set the non-master user-data file
-        if provider_is_vmware or provider_is_google 
+        if provider_is_vmware or provider_is_google or provider_is_azure
 	theuserdata =  File.read("user-data.vmware")
 	cloud_config_path = File.join(File.dirname(__FILE__), "user-data.vmware")
 	else
@@ -143,10 +217,30 @@ config.vm.box = "coreos-%s" % $update_channel
       ip = "172.17.8.#{i+100}"
       config.vm.network :private_network, ip: ip
 
-      # Uncomment below to enable NFS for sharing the host machine into the coreos-vagrant VM.
-      #config.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
+      #disable synced folders
       config.vm.synced_folder '.', '/vagrant', disabled: true
 
+##do the azure setup
+     ["azure"].each do |azure|
+	config.vm.provider azure do |a, override|
+	 a.mgmt_certificate = ENV['AZURE_MGMT_CERT']
+	 a.mgmt_endpoint = ENV['AZURE_MGMT_ENDPOINT']
+	 a.subscription_id = ENV['AZURE_SUB_ID']
+	 a.storage_acct_name = ENV['AZURE_STORAGE_ACCT']
+	 a.vm_image = ENV['AZURE_VM_IMAGE']
+         a.vm_user = 'core' # defaults to 'vagrant' if not provided
+         a.vm_password = ''
+         a.vm_name = config.vm.hostname  
+	 a.cloud_service_name = 'gonkulator' 
+         a.deployment_name = config.vm.hostname 
+         a.vm_location = 'West US' # e.g., West US
+         override.ssh.username = 'core' 
+	 override.ssh.private_key_path = ENV['AZURE_SSH_PRIV_KEY']
+	 a.private_key_file = ENV['AZURE_PRIV_KEY']
+	 a.certificate_file = ENV['AZURE_CERT_FILE']
+         a.ssh_port = ssh_port
+       	 end
+       end
 
  ##do the digital_ocean setup
      ["digital_ocean"].each do |digital_ocean|
@@ -195,8 +289,14 @@ config.vm.box = "coreos-%s" % $update_channel
            end
 	end
 
+#If the provider is azure - seed the user_data file into the right director for the default cloudinit unit to pick it up
+	if provider_is_azure
+	config.vm.provision :shell, :inline => "mkdir -p /var/lib/coreos-install/", :privileged => true
+	config.vm.provision :file, :source => "#{cloud_config_path}", :destination => "/tmp/vagrantfile-user-data"
+	config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-install/user_data", :privileged => true
+	end
 #If the provider is google or aws - do not try to do the file/shell providers
-	unless provider_is_aws or provider_is_google or provider_is_digital_ocean
+	unless provider_is_aws or provider_is_google or provider_is_digital_ocean or provider_is_azure
         config.vm.provision :file, :source => "#{cloud_config_path}", :destination => "/tmp/vagrantfile-user-data"
         config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
 	end

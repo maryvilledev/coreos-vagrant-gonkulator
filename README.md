@@ -1,6 +1,6 @@
 If you don't know what Weave is, read about it [here](https://github.com/zettio/weave).
 
-_NOTE:_ This is a fork of [@lukebond's coreos-vagrant variant that added in weave](https://github.com/lukebond/coreos-vagrant-weave).  I have taken it and added support for Digital Ocean, Google Compute Engine, AWS and got VMWare to work, as well as made it dynamically scalable.  So when you are done, you get a clean N-node setup of clustered CoreOS plus Weave and it will run on top of either virtual-box, VMWare Fusion, VMWare Workstation, AWS, Google Compute Engine or Digital Ocean!  I need to update the readme to provide google compute instructions, but you can see the env vars it is looking for at the end of the Vagrantfile.  More documentation Updates soon.
+_NOTE:_ This is a fork of [@lukebond's coreos-vagrant variant that added in weave](https://github.com/lukebond/coreos-vagrant-weave).  I have taken it and added support for Microsoft Azure, Digital Ocean, Google Compute Engine, AWS and got VMWare to work, as well as made it dynamically scalable.  So when you are done, you get a clean N-node setup of clustered CoreOS plus Weave and it will run on top of either virtual-box, VMWare Fusion, VMWare Workstation, AWS, Google Compute Engine, Digital Ocean or Microsoft Azure!  I need to update the readme to provide google compute instructions, but you can see the env vars it is looking for at the end of the Vagrantfile.  More documentation Updates soon.
 
 _NOTE2 (From previous fork):_ This post borrows directly from [@errordeveloper's piece on the Weave Blog](http://weaveblog.com/2014/10/28/running-a-weave-network-on-coreos/) (I suggest you read that first). All I've done is saved you half an hour of rejigging the CoreOS Vagrant repository to incorporate the required changes and removed the ping example. What this gives you is a clean slate of CoreOS with Weave installed and ready to use. If you're used to using the stock CoreOS Vagrant cluster, it is now "plus Weave"! 
 
@@ -305,4 +305,131 @@ Reconnects:
 core@core-01 ~ $
 ```
 
+Your cluster is complete and online.  You can follow the example above for AWS to play with weave!
+
+## Installation for default 3-node setup on Microsoft Azure
+Follow the instructions here to create your keypairs: https://github.com/MSOpenTech/vagrant-azure
+(its under "Using openssl (Linux/Mac)
+```
+$ openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert_key.pem -out mycert.pem
+```
+Use mycert.pem as certificate_file and mycert_key.pem as private_key_file.
+
+For mgmt_certificate configuration, create a mycert_mgmt.pem using above command. Use it in your VagrantFile. Then convert the mycert_mgmt.pem to mycert_mgmt.cer to upload to azure portal. 
+```
+$ openssl x509 -inform pem -in mycert_mgmt.pem -outform der -out mycert_mgmt.cer
+```
+Clone the repository and install the necessary plugin:
+```
+$ git clone https://github.com/stlalpha/coreos-vagrant-gonkulator.git
+$ cd coreos-vagrant-gonkulator
+$ vagrant plugin install vagrant-azure
+$ vagrant box add azure vagrant box add azure https://github.com/msopentech/vagrant-azure/raw/master/dummy.box
+```
+Upload the mycert_mgmt.cer to the Azure console
+
+You need to create a myazurevars_file or add them to your running environment, continue below:
+```
+$ cat >> myazurevars_file << _SCRIPT_
+export AZURE_MGMT_CERT='/Users/stlalpha/azurekeys/mycert.pem'
+export AZURE_MGMT_ENDPOINT='https://management.core.windows.net'
+export AZURE_SUB_ID='<REDACTED - THIS IS YOUR AZURE SUBSCRIBER ID>'
+export AZURE_STORAGE_ACCT='gonkulator'
+export AZURE_VM_IMAGE='2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-557.2.0'
+export AZURE_SSH_PRIV_KEY='/Users/stlalpha/azurekeys/mycert.pem'
+export AZURE_PRIV_KEY='/Users/stlalpha/azurekeys/mycert.pem'
+export AZURE_CERT_FILE='/Users/stlalpha/azurekeys/mycert.pem'
+_SCRIPT_
+``` 
+source the file and vagrant up!
+```
+$ source ./myazurevars_file
+$ vagrant up --provider=azure
+
+==> core-03: Determining OS Type By Image
+==> core-02: OS Type is Linux
+==> core-03: OS Type is Linux
+==> core-01: OS Type is Linux
+==> core-03: Attempting to read state for core-03 in gonkulator
+==> core-01: Attempting to read state for core-01 in gonkulator
+==> core-02: Attempting to read state for core-02 in gonkulator
+==> core-01: {:vm_name=>"core-01", :vm_user=>"core", :image=>"2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-557.2.0", :password=>"", :location=>"West US"}
+==> core-01: {:cloud_service_name=>"gonkulator", :storage_account_name=>"gonkulator", :deployment_name=>"core-01", :private_key_file=>"/Users/stlalpha/azurekeys/mycert.pem", :certificate_file=>"/Users/stlalpha/azurekeys/mycert.pem", :ssh_port=>9001, :vm_size=>"Small"}
+==> core-02: {:vm_name=>"core-02", :vm_user=>"core", :image=>"2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-557.2.0", :password=>"", :location=>"West US"}
+==> core-02: {:cloud_service_name=>"gonkulator", :storage_account_name=>"gonkulator", :deployment_name=>"core-02", :private_key_file=>"/Users/stlalpha/azurekeys/mycert.pem", :certificate_file=>"/Users/stlalpha/azurekeys/mycert.pem", :ssh_port=>9002, :vm_size=>"Small"}
+==> core-03: {:vm_name=>"core-03", :vm_user=>"core", :image=>"2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-557.2.0", :password=>"", :location=>"West US"}
+==> core-03: {:cloud_service_name=>"gonkulator", :storage_account_name=>"gonkulator", :deployment_name=>"core-03", :private_key_file=>"/Users/stlalpha/azurekeys/mycert.pem", :certificate_file=>"/Users/stlalpha/azurekeys/mycert.pem", :ssh_port=>9003, :vm_size=>"Small"}
+ResourceNotFound : The hosted service does not exist.
+==> core-01: Add Role? - false
+Creating deploymnent...
+Creating cloud service gonkulator.
+Uploading certificate to cloud service gonkulator...
+# # succeeded (200)
+Storage Account gonkulator already exists. Skipped...
+Deployment in progress...
+# # # # # # succeeded (200)
+==> core-01: Attempting to read state for core-01 in gonkulator
+==> core-02: Add Role? - true
+==> core-01: VM Status: RoleStateUnknown
+==> core-01: Waiting for machine to reach state ReadyRole
+==> core-01: Attempting to read state for core-01 in gonkulator
+==> core-01: VM Status: RoleStateUnknown
+Storage Account gonkulator already exists. Skipped...
+Deployment exists, adding role...
+Deployment in progress...
+# # # # # succeeded (200)
+<SNIPPED FOR BREVITY>
+$ 
+```
+When returned to the prompt you can now ssh into your nodes:
+```
+$ vagrant ssh core-01
+$ vagrant ssh core-01
+==> core-01: Attempting to read state for core-01 in gonkulator
+==> core-01: VM Status: ReadyRole
+==> core-01: Attempting to read state for core-01 in gonkulator
+==> core-01: VM Status: ReadyRole
+==> core-01: Looking for local port 22
+==> core-01: Found port mapping 9001 --> 22
+Last login: Wed Mar 11 03:26:13 2015 from 24.207.140.202
+CoreOS stable (557.2.0)
+core@core-01 ~ $ fleetctl list-machines
+MACHINE		IP		METADATA
+08712b3d...	100.112.248.54	-
+4b80f75d...	100.112.248.184	-
+99acaa43...	100.112.248.189	-
+core@core-01 ~ $ sudo weave status
+weave router git-b76e97ac2426
+Encryption off
+Our name is 7a:dd:14:7f:fa:c0 (core-01)
+Sniffing traffic on &{9 65535 ethwe da:c3:bf:5c:83:9d up|broadcast|multicast}
+MACs:
+ba:52:60:c9:c0:7d -> 7a:8f:80:b0:28:ea (2015-03-11 03:25:17.105702699 +0000 UTC)
+7a:8f:80:b0:28:ea -> 7a:8f:80:b0:28:ea (2015-03-11 03:25:18.204450699 +0000 UTC)
+da:c3:bf:5c:83:9d -> 7a:dd:14:7f:fa:c0 (2015-03-11 03:24:49.088009699 +0000 UTC)
+7a:dd:14:7f:fa:c0 -> 7a:dd:14:7f:fa:c0 (2015-03-11 03:24:49.255515199 +0000 UTC)
+6e:ad:a6:6e:2a:10 -> 7a:dd:14:7f:fa:c0 (2015-03-11 03:24:50.311954699 +0000 UTC)
+86:47:0d:c6:10:3a -> 7a:ec:ea:d9:49:cb (2015-03-11 03:25:17.104174899 +0000 UTC)
+Peers:
+Peer 7a:dd:14:7f:fa:c0 (core-01) (v4) (UID 9213908346247876447)
+   -> 7a:ec:ea:d9:49:cb (core-02) [100.112.248.189:57467]
+   -> 7a:8f:80:b0:28:ea (core-03) [100.112.248.54:57388]
+Peer 7a:ec:ea:d9:49:cb (core-02) (v4) (UID 18005557667037018474)
+   -> 7a:dd:14:7f:fa:c0 (core-01) [100.112.248.184:6783]
+   -> 7a:8f:80:b0:28:ea (core-03) [100.112.248.54:6783]
+Peer 7a:8f:80:b0:28:ea (core-03) (v4) (UID 3887254487855551153)
+   -> 7a:dd:14:7f:fa:c0 (core-01) [100.112.248.184:6783]
+   -> 7a:ec:ea:d9:49:cb (core-02) [100.112.248.189:52258]
+Routes:
+unicast:
+7a:ec:ea:d9:49:cb -> 7a:ec:ea:d9:49:cb
+7a:8f:80:b0:28:ea -> 7a:8f:80:b0:28:ea
+7a:dd:14:7f:fa:c0 -> 00:00:00:00:00:00
+broadcast:
+7a:8f:80:b0:28:ea -> []
+7a:dd:14:7f:fa:c0 -> [7a:ec:ea:d9:49:cb 7a:8f:80:b0:28:ea]
+7a:ec:ea:d9:49:cb -> []
+Reconnects:
+core@core-01 ~ $ 
+```
 Your cluster is complete and online.  You can follow the example above for AWS to play with weave!
