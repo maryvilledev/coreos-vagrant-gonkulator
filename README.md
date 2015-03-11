@@ -384,7 +384,6 @@ $
 When returned to the prompt you can now ssh into your nodes:
 ```
 $ vagrant ssh core-01
-$ vagrant ssh core-01
 ==> core-01: Attempting to read state for core-01 in gonkulator
 ==> core-01: VM Status: ReadyRole
 ==> core-01: Attempting to read state for core-01 in gonkulator
