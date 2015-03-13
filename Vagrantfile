@@ -28,58 +28,56 @@ provider_is_azure = (!ARGV.nil? && ARGV.join('').include?('provider=azure'))
 #complain about missing plugins depending on provider
 if provider_is_aws
 	 unless Vagrant.has_plugin?("vagrant-aws") 
-	   puts "-- WARNING --"
-	   puts "You are attempting to bring the cluster online using aws."
-	   puts "You do not have the aws plugin installed."
-	   puts " "
-	   puts "execute: \"vagrant plugin install vagrant-aws\" to continue."
+	  # great plugin routine from https://github.com/WhoopInc/s3auth
+  	  # Attempt to install ourself. Bail out on failure so we don't get stuck in an
+	  # infinite loop.
+	    puts "Did not detect vagrant-aws plugin..."
+	    system('vagrant plugin install vagrant-aws') || exit!
+
+	   # Relaunch Vagrant so the plugin is detected. Exit with the same status code.
+	   exit system('vagrant', *ARGV)
 	   exit
 	end
 end
 
 if provider_is_vmware
-	 unless Vagrant.has_plugin?("vagrant-vmware-fusion") or Vagrant.has_plugin?("vagrant-vmware-workstation")
-	   puts "-- WARNING --"
-	   puts "You are attempting to bring the cluster online using vmware."
-	   puts "You do not have the vmware_fusion or vmware_workstation plugin installed."
-	   puts "One of these packages are necessary to interact with vmware."
-	   puts " "
-	   puts "execute: \"vagrant plugin install vagrant-vmware_fusion\" or"
-	   puts "execute: \"vagrant plugin install vagrant-vmware_workstation\" to continue."
-	   exit
-	end
+unless Vagrant.has_plugin?("vagrant-vmware-fusion") or Vagrant.has_plugin?("vagrant-vmware-workstation")
+            puts "Did not detect vagrant-vmware-fusion or vagrant-vmware-workstation plugin..."
+            puts "Install the appropriate plugin (fusion for mac, workstationf or windows) and re-run your comand"
+           exit
+        end
+
 end
 
 if provider_is_google
 	 unless Vagrant.has_plugin?("vagrant-google") 
-	   puts "-- WARNING --"
-	   puts "You are attempting to bring the cluster online using google compute engine."
-	   puts "You do not have the google plugin installed."
-	   puts " "
-	   puts "execute: \"vagrant plugin install vagrant-google\" to continue."
-	   exit
+            puts "Did not detect vagrant-google plugin..."
+            system('vagrant plugin install vagrant-google') || exit!
+           # Relaunch Vagrant so the plugin is detected. Exit with the same status code.
+           exit system('vagrant', *ARGV)
+           exit
 	end
 end
 
 if provider_is_digital_ocean
-	 unless Vagrant.has_plugin?("vagrant-digital_ocean") 
-	   puts "-- WARNING --"
-	   puts "You are attempting to bring the cluster online using digital ocean."
-	   puts "You do not have the digital ocean plugin installed."
-	   puts " "
-	   puts "execute: \"vagrant plugin install vagrant-digitalocean\" to continue."
-	   exit
+	 unless Vagrant.has_plugin?("vagrant-digitalocean") 
+            puts "Did not detect vagrant-digitalocean plugin..."
+            system('vagrant plugin install vagrant-digitalocean') || exit!
+           # Relaunch Vagrant so the plugin is detected. Exit with the same status code.
+           exit system('vagrant', *ARGV)
+           exit
 	end
 end
 
 if provider_is_azure
 	 unless Vagrant.has_plugin?("vagrant-azure") 
-	   puts "-- WARNING --"
-	   puts "You are attempting to bring the cluster online using microsoft azure."
-	   puts "You do not have the azure plugin installed."
-	   puts " "
-	   puts "execute: \"vagrant plugin install vagrant-azure\" to continue."
-	   exit
+            puts "Did not detect vagrant-azure plugin..."
+            system('vagrant plugin install vagrant-azure') || exit!
+
+           # Relaunch Vagrant so the plugin is detected. Exit with the same status code.
+           exit system('vagrant', *ARGV)
+           exit
+
 	end
 end
 
